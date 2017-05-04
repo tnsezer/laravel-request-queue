@@ -1,4 +1,4 @@
-# laravel-request-queue
+# Request Queue For Laravel
 Request Queues For Api's For Laravel
 
 <p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
@@ -9,10 +9,10 @@ Request Queues For Api's For Laravel
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
 </p>
 
-## How To use it
+## How to use it
 Add in your page like;
 
-  ### We added request to queue
+  ### Connect to Queue And Set Request ID, It will process in order
   
         $this->connect('MAIN_KEY');
         $this->transId = 'UNIQUE_REQUEST_ID';
