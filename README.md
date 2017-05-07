@@ -15,14 +15,14 @@ Add in your page like;
   ### Connect to Queue And Set Request ID, It will process in order
   
 	$queue = new RequestQueue;
-        $queue->connect('MAIN_KEY');
-        $this->transId = 'UNIQUE_REQUEST_ID';
-        $queue->set($this->transId);
-        $queue->waitOn($this->transId);
+	$queue->connect('MAIN_KEY');
+	$this->transId = 'UNIQUE_REQUEST_ID';
+	$queue->set($this->transId);
+	$queue->waitOn($this->transId);
         
   ### When the request has finished process, delete it from queue
 
-        $queue->remove($this->transId);
+	$queue->remove($this->transId);
 
 
   ### For Example
