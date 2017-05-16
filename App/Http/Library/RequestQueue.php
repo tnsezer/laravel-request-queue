@@ -1,11 +1,10 @@
 <?php
 namespace App\Library;
-
 use \Illuminate\Support\Facades\Redis;
 
 class RequestQueue {
 
-    private $expire = 2000;
+    private $expire = 5;
     private $queue = [];
     private $redis = null;
     private $name;
@@ -19,29 +18,32 @@ class RequestQueue {
 
     private function get()
     {
-        $this->queue = json_decode($this->redis->get($this->name));
-        if(!is_array($this->queue)){
-            $this->queue = [];
-        }
+        $this->queue = $this->redis->lrange($this->name, 0, 50);
     }
 
-    private function set($value = ''){
-        if($value == $this->name){
+    private function set($value = '', $del = ''){
+        if($value != '' && $value == $this->name){
             return;
         }
-        if($value != '') {
-            array_push($this->queue, $value);
+
+        //$this->get();
+        if($del == '') {
+            \Log::info('RD_SET : '. $this->name. " : " .$value);
+            $this->redis->rpush($this->name, $value);
+        }else{
+            \Log::info('RD_DEL : '. $this->name. " : " .$value);
+            $this->redis->lrem($this->name, 1, $value);
         }
-        $this->queue = array_values($this->queue);
-        $this->redis->set($this->name, json_encode($this->queue));
-        $this->redis->pexpire($this->name, $this->expire);
+        $this->redis->expire($this->name, $this->expire);
+        //$this->get();
+        //\Log::info('RD_QUE : '.json_encode($this->queue));
     }
 
     private function waitOn($me){
         wait: {
             $this->get();
-            if(is_array($this->queue) && sizeof($this->queue) > 0 && $this->queue[0] !== $me){
-                usleep(400);
+            if(count($this->queue) > 1 && $this->queue[0] !== $me){
+                usleep(100);
                 goto wait;
             }
         }
@@ -49,29 +51,8 @@ class RequestQueue {
         return true;
     }
 
-    private function remove($keys = ''){
-        $this->get();
-
-        if(!is_array($this->queue)){
-            return;
-        }
-
-        $key = -1;
-        if($keys != '') {
-            $key = array_search($keys, $this->queue);
-        }
-
-        if($keys != '' && $key < 0){
-            return;
-        }
-
-        if($key > -1){
-            unset($this->queue[$key]);
-        }else {
-            array_shift($this->queue);
-        }
-
-        $this->set();
+    private function remove($name){
+        $this->set($name, 1);
     }
 
     private function kill(){
